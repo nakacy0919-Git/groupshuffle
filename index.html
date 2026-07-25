@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>グループ分けツール | Group Shuffle</title>
+
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta name="description" content="メンバーリストを公平かつランダムに、指定したグループ数または人数に自動で分割します。">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- 画像保存用のライブラリ -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- シャッフル中のアニメーション画面 -->
+<div id="loadingOverlay">
+  <i class="fa-solid fa-arrows-rotate fa-spin spin-icon"></i>
+  <div class="fw-bold fs-3">シャッフル中...</div>
+</div>
+
+<div class="container mt-5 max-w-lg">
+  <div class="text-center mb-4">
+    <h1 class="fw-bold"><i class="fa-solid fa-users text-warning"></i> Group Shuffle</h1>
+    <p class="text-muted">瞬間ランダムグループメーカー</p>
+  </div>
+
+  <div class="row">
+    <!-- 左側：名簿入力 -->
+    <div class="col-lg-6">
+      <div class="app-card h-100">
+        <h5><i class="fa-solid fa-file-lines me-2"></i>1. 名簿を入力</h5>
+        <p class="text-muted small">Excelやスプレッドシートからコピー＆ペースト（改行で1人）</p>
+        <textarea id="nameInput" class="form-control form-control-custom mb-3" rows="8" placeholder="山田 太郎&#10;佐藤 花子&#10;鈴木 一郎"></textarea>
+        <button id="generateBadgesBtn" class="btn btn-outline-secondary w-100 rounded-3">名簿を読み込む / 更新する</button>
+      </div>
+    </div>
+
+    <!-- 右側：設定 -->
+    <div class="col-lg-6">
+      <div class="app-card h-100">
+        <div id="badgeArea" class="mb-4" style="display: none;">
+          <h5><i class="fa-solid fa-user-xmark me-2"></i>2. 欠席者を除外</h5>
+          <div id="memberBadgesContainer"></div>
+        </div>
+
+        <h5><i class="fa-solid fa-gear me-2"></i>3. 条件を設定</h5>
+        <div class="p-3 bg-light rounded-3 border mb-3">
+          <div class="mb-3 text-center">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="divideType" id="typePerGroup" value="perGroup" checked>
+              <label class="form-check-label fw-bold" for="typePerGroup">1グループの人数</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="divideType" id="typeTotalGroups" value="totalGroups">
+              <label class="form-check-label fw-bold" for="typeTotalGroups">全体のグループ数</label>
+            </div>
+          </div>
+          
+          <div class="input-group number-spinner-group">
+            <button class="btn btn-spinner" type="button" id="btnMinus"><i class="fa-solid fa-minus"></i></button>
+            <input type="number" id="divideNumber" class="form-control text-center custom-number-input" value="4" min="1">
+            <button class="btn btn-spinner" type="button" id="btnPlus"><i class="fa-solid fa-plus"></i></button>
+            <span class="input-group-text bg-white fw-bold" id="unitLabel">人</span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-sm-6 mb-3">
+            <label class="form-label fw-bold small text-muted mb-1">グループ名</label>
+            <select id="groupNamePreset" class="form-select form-control-custom">
+              <option value="group">グループ 1, 2, 3...</option>
+              <option value="team">チーム A, B, C...</option>
+              <option value="number">1, 2, 3...</option>
+              <option value="alphabet">A, B, C...</option>
+              <option value="color">赤組, 白組, 青組...</option>
+              <option value="class">1組, 2組, 3組...</option>
+            </select>
+          </div>
+          <div class="col-sm-6 mb-3">
+            <label class="form-label fw-bold small text-muted mb-1">役割（ランダム）</label>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="assignLeader">
+              <label class="form-check-label" for="assignLeader">👑 リーダー</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="assignSubLeader">
+              <label class="form-check-label" for="assignSubLeader">🥈 サブリーダー</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="my-5 text-center">
+    <button id="shuffleBtn" class="btn-shuffle-main shadow-lg">
+      <i class="fa-solid fa-wand-magic-sparkles me-2"></i>シャッフルしてグループを作成！
+    </button>
+  </div>
+
+  <!-- 結果表示エリア -->
+  <div id="resultSection" style="display: none; background: #fdfbf7;">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <h3 class="fw-bold m-0"><i class="fa-solid fa-ranking-star text-warning me-2"></i>結果</h3>
+      <div class="d-flex align-items-center gap-3">
+        <div class="form-check form-switch m-0">
+          <input class="form-check-input" type="checkbox" role="switch" id="projectorToggle">
+          <label class="form-check-label fw-bold" for="projectorToggle">大文字表示</label>
+        </div>
+        <button id="fullScreenBtn" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-bold">
+          <i class="fa-solid fa-expand"></i> フルスクリーン
+        </button>
+      </div>
+    </div>
+    
+    <div id="resultContainer" class="row g-3"></div>
+
+    <div class="d-flex justify-content-center gap-3 mt-4 pt-3 border-top" id="exportArea">
+      <button id="downloadCsvBtn" class="btn btn-outline-primary fw-bold px-4 rounded-pill">
+        <i class="fa-solid fa-file-csv me-2"></i>CSVで保存
+      </button>
+      <button id="downloadImageBtn" class="btn btn-outline-success fw-bold px-4 rounded-pill">
+        <i class="fa-solid fa-image me-2"></i>画像で保存
+      </button>
+    </div>
+  </div>
+
+  <!-- シェアセクション -->
+  <div class="app-card mt-5 text-center shadow-sm border-0">
+    <h5 class="fw-bold mb-3">🙌 先生仲間や友人にシェアする</h5>
+    <p class="text-muted small mb-4">
+      日々の授業やイベントのグループ分けに。<br>
+      SNSやメッセージアプリでの共有、大歓迎です！
+    </p>
+    <div class="d-flex justify-content-center flex-wrap gap-3">
+      <a href="https://twitter.com/share?url=https://[※デプロイ後のURL]&text=瞬間ランダムグループメーカー「Group Shuffle」" target="_blank" class="share-btn-custom share-x">
+        <i class="fa-brands fa-x-twitter"></i> <span>X (Twitter)</span>
+      </a>
+      <a href="https://www.facebook.com/share.php?u=https://[※デプロイ後のURL]" target="_blank" class="share-btn-custom share-fb">
+        <i class="fa-brands fa-facebook-f"></i> <span>Facebook</span>
+      </a>
+      <a href="https://social-plugins.line.me/lineit/share?url=https://[※デプロイ後のURL]" target="_blank" class="share-btn-custom share-line">
+        <i class="fa-brands fa-line"></i> <span>LINE</span>
+      </a>
+      <button id="copyUrlBtn" class="share-btn-custom share-copy">
+        <i class="fa-regular fa-copy"></i> <span>リンクをコピー</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- フッター -->
+<footer class="py-4 mt-5 bg-white border-top">
+  <div class="container max-w-lg d-flex flex-column flex-md-row justify-content-between align-items-center">
+    <div class="mb-3 mb-md-0">
+      <a href="https://sites.google.com/view/koheinakashima/bio" target="_blank" class="text-decoration-none fw-bold text-secondary me-4">
+        <i class="fa-solid fa-user me-1"></i> 開発者情報
+      </a>
+      <a href="#" class="text-decoration-none fw-bold text-secondary" data-bs-toggle="modal" data-bs-target="#disclaimerModal">
+        <i class="fa-solid fa-circle-info me-1"></i> 免責事項
+      </a>
+    </div>
+    <div class="text-muted small fw-medium">
+      &copy; 2026 Group Shuffle
+    </div>
+  </div>
+</footer>
+
+<!-- 免責事項モーダル -->
+<div class="modal fade" id="disclaimerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-light border-0">
+        <h5 class="modal-title fw-bold">免責事項</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+      </div>
+      <div class="modal-body text-muted small lh-lg">
+        当ツール「Group Shuffle」は、自己責任においてご利用ください。当ツールの利用により生じた直接的、間接的なトラブルや損害について、開発者は一切の責任を負いません。<br><br>
+        また、当ツールの仕様は予告なく変更・停止される場合があります。入力された名簿データはご使用のブラウザ上でのみ処理されており、外部サーバーに保存・送信されることは一切ありませんのでご安心ください。
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script src="js/script.js"></script>
+</body>
+</html>

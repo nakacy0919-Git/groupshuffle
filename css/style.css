@@ -1,0 +1,260 @@
+/* ベーススタイル */
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background-color: #fdfbf7;
+  color: #333;
+  padding-bottom: 50px;
+}
+h1, h2, h3, h4, h5, h6 { font-weight: 700; }
+
+.max-w-lg {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* カードデザイン（クリーンな名称に変更） */
+.app-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  padding: 24px;
+  border: 1px solid #f0f0f0;
+}
+
+/* メインアクションボタン */
+.btn-shuffle-main {
+  background-color: #ffb347;
+  color: #fff;
+  border-radius: 8px;
+  border: none;
+  padding: 16px 40px;
+  font-size: 1.4rem;
+  font-weight: bold;
+  transition: all 0.1s ease;
+  box-shadow: 0 6px 0 #e69c3a;
+  display: inline-block;
+}
+.btn-shuffle-main:hover { background-color: #ffbe61; color: #fff; }
+.btn-shuffle-main:active { transform: translateY(6px); box-shadow: 0 0 0 #e69c3a; }
+
+/* フォーム関連 */
+.form-control-custom {
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  box-shadow: none;
+  transition: border-color 0.2s;
+}
+.form-control-custom:focus {
+  border-color: #ffb347;
+  box-shadow: 0 0 0 0.2rem rgba(255, 179, 71, 0.25);
+}
+
+/* 数値入力ボタン調整 */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] { -moz-appearance: textfield; }
+
+.number-spinner-group .btn-spinner {
+  background-color: #fff;
+  border: 2px solid #ffb347;
+  color: #ffb347;
+  font-size: 1.2rem;
+  width: 50px;
+  transition: all 0.2s;
+}
+.number-spinner-group .btn-spinner:hover {
+  background-color: #ffb347;
+  color: #fff;
+}
+.custom-number-input {
+  font-size: 1.5rem;
+  font-weight: bold;
+  border-top: 2px solid #ffb347 !important;
+  border-bottom: 2px solid #ffb347 !important;
+  border-left: none;
+  border-right: none;
+}
+.number-spinner-group .input-group-text {
+  border: 2px solid #ffb347;
+  border-left: none;
+  color: #555;
+}
+
+/* 欠席者バッジ */
+.member-badge {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  margin: 4px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background-color: #e3f2fd;
+  color: #0d47a1;
+  border: 1px solid #bbdefb;
+  display: inline-block;
+}
+.member-badge:hover { background-color: #bbdefb; }
+.member-badge.absent {
+  background-color: #f1f3f5;
+  color: #adb5bd;
+  border-color: #dee2e6;
+  text-decoration: line-through;
+}
+
+.group-result-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 2px solid #eee;
+  height: 100%;
+}
+.role-icon { margin-right: 4px; font-size: 1.1rem; }
+.role-icon.leader { color: #fbbf24; }
+.role-icon.sub-leader { color: #9ca3af; }
+
+/* プロジェクターモード（通常画面での大文字化） */
+.projector-mode .group-card-title { font-size: 2.5rem; color: #ffb347; }
+.projector-mode .group-member-item { font-size: 2rem; padding: 12px 0; }
+
+/* シャッフルアニメーション用オーバーレイ */
+#loadingOverlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(253, 251, 247, 0.95);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #ffb347;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+#loadingOverlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.spin-icon { font-size: 5rem; margin-bottom: 20px; }
+
+/* ===============================
+   フルスクリーン時の究極レイアウト
+=============================== */
+#resultSection:fullscreen {
+  background-color: #fdfbf7;
+  padding: 2vh 2vw;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#resultSection:fullscreen > .d-flex {
+  flex-shrink: 0;
+  margin-bottom: 1.5vh !important;
+}
+
+#resultSection:fullscreen #resultContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 1.5vh 1.5vw;
+  flex-grow: 1;
+  margin: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+#resultSection:fullscreen .col-12,
+#resultSection:fullscreen .col-md-6,
+#resultSection:fullscreen .col-lg-4 {
+  width: 100%;
+  padding: 0;
+  display: flex;
+  min-width: 0;
+}
+
+#resultSection:fullscreen .group-result-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5vh 1vw !important;
+  overflow: hidden;
+}
+
+#resultSection:fullscreen .group-card-title {
+  font-size: min(3.5vh, 2.5vw);
+  white-space: nowrap;
+  border-bottom: 3px solid #dee2e6 !important;
+  padding-bottom: 1vh !important;
+  margin-bottom: 0 !important;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+#resultSection:fullscreen .group-card-title .fs-6 {
+  font-size: 0.6em !important;
+}
+
+#resultSection:fullscreen .group-member-item {
+  font-size: min(3vh, 2vw);
+  white-space: nowrap;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-bottom: 1px dashed #eee;
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+#resultSection:fullscreen .group-member-item:last-child {
+  border-bottom: none;
+}
+
+#resultSection:fullscreen .role-icon {
+  font-size: 1.4em;
+  margin-right: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+/* ===============================
+   シェアボタンとフッターの設定
+=============================== */
+.share-btn-custom {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+.share-btn-custom:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  color: white;
+}
+.share-x { background-color: #0f1419; color: #fff; }
+.share-fb { background-color: #1877f2; color: #fff; }
+.share-line { background-color: #06c755; color: #fff; }
+.share-copy { background-color: #f8f9fa; color: #495057; border: 1px solid #dee2e6; }
+.share-copy:hover { background-color: #e9ecef; color: #212529; }
+
+footer a:hover { opacity: 0.7; }
+
+/* フルスクリーン時にシェアとフッターを隠す */
+#resultSection:fullscreen ~ .app-card,
+#resultSection:fullscreen ~ footer {
+  display: none !important;
+}
