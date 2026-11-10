@@ -115,9 +115,20 @@ input[type="number"] { -moz-appearance: textfield; }
 .role-icon.leader { color: #fbbf24; }
 .role-icon.sub-leader { color: #9ca3af; }
 
-/* プロジェクターモード（通常画面での大文字化） */
-.projector-mode .group-card-title { font-size: 2.5rem; color: #ffb347; }
-.projector-mode .group-member-item { font-size: 2rem; padding: 12px 0; }
+/* 大文字表示でもカードの列数は変更しない。長い氏名は省略せず折り返す。 */
+.projector-mode .group-card-title {
+  font-size: clamp(1.5rem, 2.7vw, 2.5rem);
+  color: #ffb347;
+  overflow-wrap: anywhere;
+}
+.projector-mode .group-member-item {
+  font-size: clamp(1.25rem, 2.2vw, 2rem);
+  padding: 12px 4px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.group-member-list { min-width: 0; }
+.group-member-item { overflow-wrap: anywhere; word-break: normal; }
 
 /* シャッフルアニメーション用オーバーレイ */
 #loadingOverlay {
@@ -141,87 +152,120 @@ input[type="number"] { -moz-appearance: textfield; }
 .spin-icon { font-size: 5rem; margin-bottom: 20px; }
 
 /* ===============================
-   フルスクリーン時の究極レイアウト
+   フルスクリーン：グループ数に応じた弁当型グリッド
+   横並び一列・氏名の省略・カードの切り取りを防ぐ
 =============================== */
 #resultSection:fullscreen {
+  box-sizing: border-box;
   background-color: #fdfbf7;
-  padding: 2vh 2vw;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  padding: clamp(10px, 1.6vh, 24px) clamp(12px, 2vw, 32px);
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+  overflow: auto;
 }
 
 #resultSection:fullscreen > .d-flex {
   flex-shrink: 0;
-  margin-bottom: 1.5vh !important;
+  margin-bottom: clamp(8px, 1.5vh, 16px) !important;
 }
 
 #resultSection:fullscreen #resultContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  grid-auto-rows: 1fr;
-  gap: 1.5vh 1.5vw;
-  flex-grow: 1;
-  margin: 0;
-  height: 100%;
-  min-height: 0;
+  grid-template-columns: repeat(var(--projector-columns, 3), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--projector-rows, 2), minmax(min-content, 1fr));
+  gap: clamp(8px, 1.4vh, 18px) clamp(8px, 1.2vw, 20px);
+  flex: 1 0 0;
+  min-height: min-content;
+  width: 100%;
+  margin: 0 !important;
+  align-content: stretch;
 }
 
-#resultSection:fullscreen .col-12,
-#resultSection:fullscreen .col-md-6,
-#resultSection:fullscreen .col-lg-4 {
+#resultSection:fullscreen #resultContainer > div {
   width: 100%;
+  min-width: 0;
   padding: 0;
   display: flex;
-  min-width: 0;
+  margin: 0;
 }
 
 #resultSection:fullscreen .group-result-card {
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
+  min-width: 0;
+  padding: clamp(8px, 1.3vh, 18px) clamp(8px, 1vw, 16px) !important;
   display: flex;
   flex-direction: column;
-  padding: 1.5vh 1vw !important;
-  overflow: hidden;
+  overflow: visible;
 }
 
 #resultSection:fullscreen .group-card-title {
-  font-size: min(3.5vh, 2.5vw);
-  white-space: nowrap;
-  border-bottom: 3px solid #dee2e6 !important;
-  padding-bottom: 1vh !important;
-  margin-bottom: 0 !important;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  flex: 0 0 auto;
+  color: #ffad36;
+  font-size: var(--projector-title-size, 28px);
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  border-bottom: 2px solid #dee2e6 !important;
+  padding-bottom: clamp(5px, 0.8vh, 12px) !important;
+  margin-bottom: clamp(3px, 0.6vh, 8px) !important;
+  overflow: visible;
+  text-overflow: clip;
 }
+
 #resultSection:fullscreen .group-card-title .fs-6 {
-  font-size: 0.6em !important;
+  font-size: 0.62em !important;
+  color: #666 !important;
+}
+
+#resultSection:fullscreen .group-member-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
 
 #resultSection:fullscreen .group-member-item {
-  font-size: min(3vh, 2vw);
-  white-space: nowrap;
-  flex-grow: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border-bottom: 1px dashed #eee;
+  box-sizing: border-box;
+  font-size: var(--projector-member-size, 26px);
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  flex: 1 0 auto;
+  min-width: 0;
   width: 100%;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  padding: clamp(3px, 0.65vh, 8px) 2px !important;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  gap: 3px 7px;
+  border-bottom: 1px solid #e0e5eb !important;
+  overflow: visible;
+  text-overflow: clip;
 }
-#resultSection:fullscreen .group-member-item:last-child {
-  border-bottom: none;
-}
+#resultSection:fullscreen .group-member-item:last-child { border-bottom: none !important; }
 
 #resultSection:fullscreen .role-icon {
-  font-size: 1.4em;
+  font-size: 1.08em;
   margin-right: 0;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   line-height: 1;
+}
+
+/* 縦長画面でもカード内の氏名は非表示・省略しない */
+@media (orientation: portrait) {
+  #resultSection:fullscreen {
+    padding: 12px;
+  }
 }
 
 /* ===============================
