@@ -137,32 +137,69 @@ function renderResults(groups) {
         <h4 class="group-card-title fw-bold mb-3 border-bottom pb-2">
           ${groupName} <span class="text-muted fs-6">(${group.length}名)</span>
         </h4>
-        <div>${listItems}</div>
+        <div class="group-member-list">${listItems}</div>
       </div>
     `;
     resultContainer.appendChild(col);
   });
 
   resultSection.style.display = 'block';
+  updateProjectorLayout();
   if (!document.fullscreenElement) {
     resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
 
-// フルスクリーン・大文字表示の切り替え
-projectorToggle.addEventListener('change', (e) => {
-  if (e.target.checked) {
-    resultContainer.classList.add('projector-mode');
-    resultContainer.querySelectorAll('.col-md-6, .col-lg-4').forEach(col => { 
-      col.classList.remove('col-md-6', 'col-lg-4'); col.classList.add('col-12'); 
-    });
+// グループ数・画面の縦横比に合わせて、カードを複数段の弁当型に配置する。
+// フルスクリーンはスクロール可能にし、どの氏名も ellipsis/hidden で切らない。
+function updateProjectorLayout() {
+  const count = currentGeneratedGroups.length;
+  if (!count) return;
+
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const aspect = width / Math.max(1, height);
+  let columns;
+
+  if (aspect >= 1.45) {
+    // 一般的な教室の16:9スクリーンで見やすい配置
+    const wideColumns = [0, 1, 2, 3, 2, 3, 3, 4, 4, 3, 4, 4, 4];
+    columns = wideColumns[count] || Math.round(Math.sqrt(count * aspect / 1.6));
+  } else if (aspect >= 1.15) {
+    columns = Math.round(Math.sqrt(count));
   } else {
-    resultContainer.classList.remove('projector-mode');
-    resultContainer.querySelectorAll('.col-12').forEach(col => { 
-      col.classList.add('col-md-6', 'col-lg-4'); 
-    });
+    columns = Math.round(Math.sqrt(count / 1.5));
   }
+  columns = Math.min(count, Math.max(1, columns));
+  const rows = Math.ceil(count / columns);
+
+  resultContainer.style.setProperty('--projector-columns', columns);
+  resultContainer.style.setProperty('--projector-rows', rows);
+
+  // 行数・人数が増えた場合は文字サイズを調整（必ず全文表示）。
+  const maxMembers = Math.max(1, ...currentGeneratedGroups.map(group => group.length));
+  const gap = Math.max(8, Math.min(18, height * 0.014));
+  const cardWidth = (width - Math.max(24, width * 0.04) - (columns - 1) * gap) / columns;
+  const cardHeight = (height - 95 - (rows - 1) * gap) / rows;
+  const widthSize = (cardWidth - 30) / 11;
+  const heightSize = (cardHeight - 64) / (maxMembers + 0.5) * 0.91;
+  const zoom = projectorToggle.checked ? 1.1 : 1;
+  const memberSize = Math.max(16, Math.min(35, widthSize, heightSize) * zoom);
+  const titleSize = Math.max(17, Math.min(36, memberSize * 1.08));
+
+  resultContainer.style.setProperty('--projector-member-size', memberSize.toFixed(1) + 'px');
+  resultContainer.style.setProperty('--projector-title-size', titleSize.toFixed(1) + 'px');
+}
+
+projectorToggle.addEventListener('change', () => {
+  // Bootstrap の列を削除すると横並び表示が壊れるため、列クラスは変更しない。
+  resultContainer.classList.toggle('projector-mode', projectorToggle.checked);
+  updateProjectorLayout();
 });
+
+window.addEventListener('resize', updateProjectorLayout);
+
+
 
 fullScreenBtn.addEventListener('click', () => {
   if (!document.fullscreenElement) {
@@ -185,6 +222,7 @@ document.addEventListener('fullscreenchange', () => {
     fullScreenBtn.classList.replace('btn-dark', 'btn-outline-dark');
     exportArea.style.display = 'flex'; 
   }
+  requestAnimationFrame(updateProjectorLayout);
 });
 
 // CSV出力機能
